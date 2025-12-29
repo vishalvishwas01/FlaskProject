@@ -4,10 +4,17 @@ from datetime import datetime
 import os
 
 app = Flask(__name__)
-basedir = os.path.abspath(os.path.dirname(__file__))
-app.config["SQLALCHEMY_DATABASE_URI"] = (
-    "sqlite:///" + os.path.join(basedir, "vishal.db")
-)
+
+# Database configuration
+if os.environ.get('DATABASE_URL'):
+    # Production database
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get('DATABASE_URL')
+else:
+    # Development database
+    basedir = os.path.abspath(os.path.dirname(__file__))
+    app.config["SQLALCHEMY_DATABASE_URI"] = (
+        "sqlite:///" + os.path.join(basedir, "vishal.db")
+    )
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -63,4 +70,5 @@ def delete(sno):
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
-    app.run(debug=True)
+    # Run with debug=False in production, debug=True in development
+    app.run(debug=os.environ.get('FLASK_ENV') != 'production')
